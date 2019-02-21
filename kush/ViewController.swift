@@ -9,33 +9,66 @@
 import UIKit
 import Firebase
 import HealthKit
+import CoreLocation
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, CLLocationManagerDelegate {
 
     var ref: DatabaseReference!
     let healthStore = HKHealthStore()
+    var locationManager:CLLocationManager!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         ref = Database.database().reference()
-        ref.child("users").child("abba").setValue(["username": "abhi"])
+        let uid = UIDevice.current.identifierForVendor!.uuidString
+        ref.child("users").child(uid).setValue(["username": "abhi"])
+        determineMyCurrentLocation()
         
-        let typestoRead = Set([
-            HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
-            ])
+//        let typestoRead = Set([
+//            HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
+//            ])
+//
+//        let typestoShare = Set([
+//            HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
+//            ])
+//
+//        self.healthStore.requestAuthorization(toShare: typestoShare, read: typestoRead) { (success, error) -> Void in
+//            if success == false {
+//                NSLog(" Display not allowed")
+//            } else {
+////                self.retrieveSleepAnalysis()
+//            }
+//        }
+    }
+
+    func determineMyCurrentLocation() {
+        locationManager = CLLocationManager()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestAlwaysAuthorization()
         
-        let typestoShare = Set([
-            HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
-            ])
-        
-        self.healthStore.requestAuthorization(toShare: typestoShare, read: typestoRead) { (success, error) -> Void in
-            if success == false {
-                NSLog(" Display not allowed")
-            } else {
-                self.retrieveSleepAnalysis()
-            }
+        if CLLocationManager.locationServicesEnabled() {
+            locationManager.startUpdatingLocation()
+            //locationManager.startUpdatingHeading()
         }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let userLocation:CLLocation = locations[0] as CLLocation
+        
+        // Call stopUpdatingLocation() to stop listening for location updates,
+        // other wise this function will be called every time when user location changes.
+        
+        // manager.stopUpdatingLocation()
+        
+        print("user latitude = \(userLocation.coordinate.latitude)")
+        print("user longitude = \(userLocation.coordinate.longitude)")
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error)
+    {
+        print("Error \(error)")
     }
 
     func retrieveSleepAnalysis() {
