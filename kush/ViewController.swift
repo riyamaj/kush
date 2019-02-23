@@ -16,13 +16,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     var ref: DatabaseReference!
     let healthStore = HKHealthStore()
     var locationManager:CLLocationManager!
+    var uid: String?
+    
+    @IBOutlet weak var statusLabel: UILabel!
+    
+    @IBOutlet weak var actionButton: UIButton!
+    
+    @IBOutlet weak var textField: UITextField!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         ref = Database.database().reference()
-        let uid = UIDevice.current.identifierForVendor!.uuidString
-        ref.child("users").child(uid).setValue(["username": "abhi"])
+        uid = UIDevice.current.identifierForVendor!.uuidString
+        ref.child("users").child(uid!).setValue(["username": "daniel"])
         determineMyCurrentLocation()
         
 //        let typestoRead = Set([
@@ -41,7 +48,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
 //            }
 //        }
     }
-
+    
+    @IBAction func actionButtonPressed(_ sender: Any) {
+        var userText = textField.text!
+        ref.child("users").child(uid!).updateChildValues(["extra": userText])
+        statusLabel.text = "Updated: " + userText
+    }
+    
     func determineMyCurrentLocation() {
         locationManager = CLLocationManager()
         locationManager.delegate = self
