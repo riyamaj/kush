@@ -14,12 +14,15 @@ import Foundation
 
 class ViewController: UIViewController, CLLocationManagerDelegate {
 
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var ref: DatabaseReference!
+    var uid: String!
+    
     var timer = Timer()
     let healthStore = HKHealthStore()
     var locationManager:CLLocationManager!
-    var uid: String?
     private var startTime: Date? //An instance variable, will be used as a previous location time.
+
     
     @IBOutlet weak var statusLabel: UILabel!
     
@@ -36,18 +39,26 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             }
         }
     }
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        ref = Database.database().reference()
-        uid = UIDevice.current.identifierForVendor!.uuidString
-        ref.child("users").child(uid!).setValue(["username": "daniel"])
         
-        var timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) {
-            timer in
-            
-            self.someBackgroundTask(timer: timer)
-        }
+        // Do any additional setup after loading the view, typically from a nib.
+        
+        //Set DB ref and uid to appDelegate
+        self.ref = appDelegate.ref
+        self.uid = appDelegate.uid
+        
+        setupUser()
+        
+        //ref.child("users").child(uid!).setValue(["username": "daniel"])
+        
+//      var timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) {
+//          timer in
+//
+//          self.someBackgroundTask(timer: timer)
+//      }
         
 //        let typestoRead = Set([
 //            HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
@@ -69,7 +80,53 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     @IBAction func actionButtonPressed(_ sender: Any) {
         var userText = textField.text!
         ref.child("users").child(uid!).updateChildValues(["extra": userText])
-        statusLabel.text = "Updated: " + userText
+        statusLabel.text = userText
+        
+        determineMyCurrentLocation()
+    }
+    
+    // Sets up user the first time they start up the app
+    func setupUser() {
+        //ref.child("users").child(uid).setValue(["username": "daniel"])
+        ref.child("users").child(uid).observeSingleEvent(of: .value, with: { (snapshot) in
+            if snapshot.exists(){
+                print("User already exists")
+            }
+            else{
+                //Setup user in users table
+                self.ref.child("users").child(self.uid).setValue(["username": self.uid])
+                
+                //Setup user in location table
+                self.ref.child("location_data").child("users").child(self.uid).setValue("")
+                
+                //Setup user in sleep_data
+                
+            }
+        })
+    }
+    
+    // Returns todays date in yyyy-mm-dd
+    func getTodaysDate() -> String {
+        let date = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+    
+    // Returns the current epoch in seconds
+    func getCurrentEpoch() -> UInt64 {
+        return UInt64(NSDate().timeIntervalSince1970)
+    }
+    
+    // Returns readable date from epoch in seconds
+    func convertEpoch(timestamp: UInt64) -> String {
+        let date = Date(timeIntervalSince1970: TimeInterval(timestamp))
+        let formatter = DateFormatter()
+        
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter.string(from: date)
     }
     
     func determineMyCurrentLocation() {
@@ -82,6 +139,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             locationManager.startUpdatingLocation()
             //locationManager.startUpdatingHeading()
         }
+    }
+    
+    // Pushes the current location to firebase
+    func pushLocation(location: CLLocation) {
+        let date = getTodaysDate()
+        let timestamp = String(getCurrentEpoch())
+        let placetype = "unknown"
+        
+        let locData = ["latitude": location.coordinate.latitude,
+                        "longitude": location.coordinate.longitude,
+                        "type": placetype] as [String : Any]
+        
+        let updateObject = [timestamp: locData]
+        // Push to Database
+        ref.child("location_data/users").child(uid).child(date).updateChildValues(updateObject)
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -106,6 +178,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             print("Upload updated location to server")
             print("user latitude = \(userLocation.coordinate.latitude)")
             print("user longitude = \(userLocation.coordinate.longitude)")
+            
+            pushLocation(location: userLocation)
             
             self.startTime = time //Changing our timestamp of previous location to timestamp of location we already uploaded.
             

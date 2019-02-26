@@ -13,10 +13,17 @@ import Firebase
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    var ref: DatabaseReference!
+    var uid: String!
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         FirebaseApp.configure()
+        
+        // Set Reference to Database and userID
+        ref = Database.database().reference()
+        uid = UIDevice.current.identifierForVendor!.uuidString
+        
         return true
     }
 
