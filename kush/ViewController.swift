@@ -10,13 +10,16 @@ import UIKit
 import Firebase
 import HealthKit
 import CoreLocation
+import Foundation
 
 class ViewController: UIViewController, CLLocationManagerDelegate {
 
     var ref: DatabaseReference!
+    var timer = Timer()
     let healthStore = HKHealthStore()
     var locationManager:CLLocationManager!
     var uid: String?
+    private var startTime: Date? //An instance variable, will be used as a previous location time.
     
     @IBOutlet weak var statusLabel: UILabel!
     
@@ -24,13 +27,27 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     @IBOutlet weak var textField: UITextField!
     
+    func someBackgroundTask(timer:Timer) {
+        DispatchQueue.global(qos: DispatchQoS.background.qosClass).async {
+            self.determineMyCurrentLocation()
+            
+            DispatchQueue.main.async {
+                print("update some UI")
+            }
+        }
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         ref = Database.database().reference()
         uid = UIDevice.current.identifierForVendor!.uuidString
         ref.child("users").child(uid!).setValue(["username": "daniel"])
-        determineMyCurrentLocation()
+        
+        var timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) {
+            timer in
+            
+            self.someBackgroundTask(timer: timer)
+        }
         
 //        let typestoRead = Set([
 //            HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
@@ -74,9 +91,27 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         // other wise this function will be called every time when user location changes.
         
         // manager.stopUpdatingLocation()
+        guard let loc = locations.last else { return }
         
-        print("user latitude = \(userLocation.coordinate.latitude)")
-        print("user longitude = \(userLocation.coordinate.longitude)")
+        let time = loc.timestamp
+        
+        guard let startTime = startTime else {
+            self.startTime = time // Saving time of first location, so we could use it to compare later with second location time.
+            return //Returning from this function, as at this moment we don't have second location.
+        }
+        
+        let elapsed = time.timeIntervalSince(startTime) // Calculating time interval between first and second (previously saved) locations timestamps.
+        
+        if elapsed > 6 { //If time interval is more than 30 seconds
+            print("Upload updated location to server")
+            print("user latitude = \(userLocation.coordinate.latitude)")
+            print("user longitude = \(userLocation.coordinate.longitude)")
+            
+            self.startTime = time //Changing our timestamp of previous location to timestamp of location we already uploaded.
+            
+        }
+        
+        
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error)

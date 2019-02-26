@@ -8,7 +8,7 @@ target 'kush' do
   # Pods for kush
   pod 'Firebase/Core'
   pod 'Firebase/Database'
-
+  
   target 'kushTests' do
     inherit! :search_paths
     # Pods for testing
