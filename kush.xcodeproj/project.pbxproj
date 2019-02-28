@@ -240,6 +240,11 @@
 				TargetAttributes = {
 					BCD8ECAA221F238000FAA16F = {
 						CreatedOnToolsVersion = 10.1;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+						};
 					};
 					BCD8ECBE221F238300FAA16F = {
 						CreatedOnToolsVersion = 10.1;

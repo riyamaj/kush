@@ -18,7 +18,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     var ref: DatabaseReference!
     var uid: String!
     
-    var timer = Timer()
     let healthStore = HKHealthStore()
     var locationManager:CLLocationManager!
     private var startTime: Date? //An instance variable, will be used as a previous location time.
@@ -30,17 +29,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     @IBOutlet weak var textField: UITextField!
     
-    func someBackgroundTask(timer:Timer) {
-        DispatchQueue.global(qos: DispatchQoS.background.qosClass).async {
-            self.determineMyCurrentLocation()
-            
-            DispatchQueue.main.async {
-                print("update some UI")
-            }
-        }
-    }
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -51,6 +39,12 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         self.uid = appDelegate.uid
         
         setupUser()
+        
+        //Setup location
+        locationManager = CLLocationManager()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestAlwaysAuthorization()
         
         //ref.child("users").child(uid!).setValue(["username": "daniel"])
         
@@ -81,9 +75,21 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         var userText = textField.text!
         ref.child("users").child(uid!).updateChildValues(["extra": userText])
         statusLabel.text = userText
-        
-        determineMyCurrentLocation()
+
+        //determineMyCurrentLocation()
+        startTimer()
     }
+    
+    
+    func startTimer() {
+        // Timer fires every 5 seconds, then sleeps for 10
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { (t) in
+            print("Timer PRINT")
+            self.locationManager.requestLocation()
+            sleep(10)
+        }
+    }
+    
     
     // Sets up user the first time they start up the app
     func setupUser() {
@@ -129,18 +135,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         return formatter.string(from: date)
     }
     
-    func determineMyCurrentLocation() {
-        locationManager = CLLocationManager()
-        locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestAlwaysAuthorization()
-        
-        if CLLocationManager.locationServicesEnabled() {
-            locationManager.startUpdatingLocation()
-            //locationManager.startUpdatingHeading()
-        }
-    }
-    
     // Pushes the current location to firebase
     func pushLocation(location: CLLocation) {
         let date = getTodaysDate()
@@ -158,33 +152,18 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let userLocation:CLLocation = locations[0] as CLLocation
-        
+
         // Call stopUpdatingLocation() to stop listening for location updates,
         // other wise this function will be called every time when user location changes.
         
         // manager.stopUpdatingLocation()
-        guard let loc = locations.last else { return }
         
-        let time = loc.timestamp
+        print("Upload updated location to server")
+        print("user latitude = \(userLocation.coordinate.latitude)")
+        print("user longitude = \(userLocation.coordinate.longitude)")
         
-        guard let startTime = startTime else {
-            self.startTime = time // Saving time of first location, so we could use it to compare later with second location time.
-            return //Returning from this function, as at this moment we don't have second location.
-        }
-        
-        let elapsed = time.timeIntervalSince(startTime) // Calculating time interval between first and second (previously saved) locations timestamps.
-        
-        if elapsed > 6 { //If time interval is more than 30 seconds
-            print("Upload updated location to server")
-            print("user latitude = \(userLocation.coordinate.latitude)")
-            print("user longitude = \(userLocation.coordinate.longitude)")
-            
-            pushLocation(location: userLocation)
-            
-            self.startTime = time //Changing our timestamp of previous location to timestamp of location we already uploaded.
-            
-        }
-        
+        pushLocation(location: userLocation)
+
         
     }
     
