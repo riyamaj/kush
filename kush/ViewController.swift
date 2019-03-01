@@ -11,28 +11,24 @@ import Firebase
 import HealthKit
 import CoreLocation
 import Foundation
+import Alamofire
 
 class ViewController: UIViewController, CLLocationManagerDelegate {
-
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    var ref: DatabaseReference!
-    var uid: String!
-    
     let healthStore = HKHealthStore()
     var locationManager:CLLocationManager!
+    var ref: DatabaseReference!
+    var uid: String!
+    var importantTypes = ""
     private var startTime: Date? //An instance variable, will be used as a previous location time.
 
     
     @IBOutlet weak var statusLabel: UILabel!
-    
     @IBOutlet weak var actionButton: UIButton!
-    
     @IBOutlet weak var textField: UITextField!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Do any additional setup after loading the view, typically from a nib.
         
         //Set DB ref and uid to appDelegate
         self.ref = appDelegate.ref
@@ -46,45 +42,61 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestAlwaysAuthorization()
         
-        //ref.child("users").child(uid!).setValue(["username": "daniel"])
-        
-//      var timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) {
-//          timer in
-//
-//          self.someBackgroundTask(timer: timer)
-//      }
-        
-//        let typestoRead = Set([
-//            HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
-//            ])
-//
-//        let typestoShare = Set([
-//            HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!
-//            ])
-//
-//        self.healthStore.requestAuthorization(toShare: typestoShare, read: typestoRead) { (success, error) -> Void in
-//            if success == false {
-//                NSLog(" Display not allowed")
-//            } else {
-////                self.retrieveSleepAnalysis()
-//            }
-//        }
-    }
-    
-    @IBAction func actionButtonPressed(_ sender: Any) {
-        var userText = textField.text!
-        ref.child("users").child(uid!).updateChildValues(["extra": userText])
-        statusLabel.text = userText
-
-        //determineMyCurrentLocation()
         startTimer()
     }
     
     
+    func enrichLocationWithGoogle(location:CLLocation) {
+        AF.request("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(location.coordinate.latitude),\(location.coordinate.longitude)&radius=100&key=AIzaSyAmFtGkGjnjUBknBXwJNtJmJlskLNU4jQE").responseJSON { response in
+            if let json = response.result.value {
+                let response = json as! NSDictionary
+                var types_arr: [String] = []
+                let results = response.object(forKey: "results")! as! [NSDictionary]
+                var counter = 0
+                var names_arr:[String] = []
+                while counter < 3 || counter >= results.count {
+                    let result = results[counter]
+                    let types = result.object(forKey: "types")! as! [String]
+                    for type in types {
+                        types_arr.append(type)
+                    }
+                    let name = result.object(forKey: "name")! as! String
+                    names_arr.append(name)
+                    counter += 1
+                }
+                let s = Array(Set(types_arr))
+                var ret_string: String = ""
+                
+                s.forEach { value in
+                    ret_string += value + ","
+                }
+                let t = Array(Set(names_arr))
+                var ret_string2: String = ""
+                
+                t.forEach { value in
+                    ret_string2 += value + ","
+                }
+                self.pushLocation(location: location, ret: ret_string, ret2: ret_string2)
+            }
+        }
+        
+    }
+    
+    @IBAction func actionButtonPressed(_ sender: Any) {
+        let userText = textField.text!
+        ref.child("users").child(uid!).updateChildValues(["extra": userText])
+        
+        /**
+        Make calls to backend to figure out if we are depressed or not.
+         Get advice. update UI or text fields.
+        */
+        statusLabel.text = userText
+        
+    }
+    
     func startTimer() {
         // Timer fires every 5 seconds, then sleeps for 10
         Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { (t) in
-            print("Timer PRINT")
             self.locationManager.requestLocation()
             sleep(10)
         }
@@ -136,76 +148,34 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     }
     
     // Pushes the current location to firebase
-    func pushLocation(location: CLLocation) {
+    func pushLocation(location: CLLocation, ret: String, ret2: String) {
         let date = getTodaysDate()
         let timestamp = String(getCurrentEpoch())
-        let placetype = "unknown"
-        
         let locData = ["latitude": location.coordinate.latitude,
-                        "longitude": location.coordinate.longitude,
-                        "type": placetype] as [String : Any]
+                       "longitude": location.coordinate.longitude,
+                       "types": ret,
+                       "names": ret2,
+                       "speed": String(location.speed.binade),
+                       "altitude": String(location.altitude.binade)] as [String : Any]
         
         let updateObject = [timestamp: locData]
         // Push to Database
         ref.child("location_data/users").child(uid).child(date).updateChildValues(updateObject)
+        
+        print("Upload updated location to server")
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let userLocation:CLLocation = locations[0] as CLLocation
-
-        // Call stopUpdatingLocation() to stop listening for location updates,
-        // other wise this function will be called every time when user location changes.
-        
-        // manager.stopUpdatingLocation()
-        
-        print("Upload updated location to server")
         print("user latitude = \(userLocation.coordinate.latitude)")
         print("user longitude = \(userLocation.coordinate.longitude)")
         
-        pushLocation(location: userLocation)
-
-        
+        enrichLocationWithGoogle(location: userLocation)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error)
     {
         print("Error \(error)")
     }
-
-    func retrieveSleepAnalysis() {
-        
-        // first, we define the object type we want
-        if let sleepType = HKObjectType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis) {
-            
-            // Use a sortDescriptor to get the recent data first
-            let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-            
-            // we create our query with a block completion to execute
-            let query = HKSampleQuery(sampleType: sleepType, predicate: nil, limit: 30, sortDescriptors: [sortDescriptor]) { (query, tmpResult, error) -> Void in
-                
-                if error != nil {
-                    
-                    // something happened
-                    return
-                    
-                }
-                
-                if let result = tmpResult {
-                    
-                    // do something with my data
-                    for item in result {
-                        if let sample = item as? HKCategorySample {
-                            let value = (sample.value == HKCategoryValueSleepAnalysis.inBed.rawValue) ? "InBed" : "Asleep"
-                            print("Healthkit sleep: \(sample.startDate) \(sample.endDate) - value: \(value)")
-                        }
-                    }
-                }
-            }
-            
-            // finally, we execute our query
-            healthStore.execute(query)
-        }
-    }
-
 }
 

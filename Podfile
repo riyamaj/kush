@@ -8,6 +8,8 @@ target 'kush' do
   # Pods for kush
   pod 'Firebase/Core'
   pod 'Firebase/Database'
+  pod 'Alamofire', '~> 5.0.0-beta.2'
+  pod 'SwiftyJSON'
   
   target 'kushTests' do
     inherit! :search_paths
