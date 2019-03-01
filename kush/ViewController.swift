@@ -47,21 +47,23 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     
     func enrichLocationWithGoogle(location:CLLocation) {
-        AF.request("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(location.coordinate.latitude),\(location.coordinate.longitude)&radius=100&key=AIzaSyAmFtGkGjnjUBknBXwJNtJmJlskLNU4jQE").responseJSON { response in
+        AF.request("https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(location.coordinate.latitude),\(location.coordinate.longitude)&radius=25&key=AIzaSyAmFtGkGjnjUBknBXwJNtJmJlskLNU4jQE").responseJSON { response in
             if let json = response.result.value {
                 let response = json as! NSDictionary
                 var types_arr: [String] = []
                 let results = response.object(forKey: "results")! as! [NSDictionary]
                 var counter = 0
                 var names_arr:[String] = []
-                while counter < 3 || counter >= results.count {
+                while counter < min(4, results.count) {
                     let result = results[counter]
                     let types = result.object(forKey: "types")! as! [String]
                     for type in types {
                         types_arr.append(type)
                     }
-                    let name = result.object(forKey: "name")! as! String
-                    names_arr.append(name)
+                    let name = result.object(forKey: "name")
+                    if name != nil {
+                        names_arr.append(name as! String)
+                    }
                     counter += 1
                 }
                 let s = Array(Set(types_arr))
@@ -96,7 +98,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     func startTimer() {
         // Timer fires every 5 seconds, then sleeps for 10
-        Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { (t) in
+        Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { (t) in
             self.locationManager.requestLocation()
             sleep(10)
         }
@@ -155,13 +157,13 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                        "longitude": location.coordinate.longitude,
                        "types": ret,
                        "names": ret2,
-                       "speed": String(location.speed.binade),
-                       "altitude": String(location.altitude.binade)] as [String : Any]
+                       "altitude": location.altitude.binade,
+                       "speed": location.speed.binade] as [String : Any]
         
         let updateObject = [timestamp: locData]
         // Push to Database
         ref.child("location_data/users").child(uid).child(date).updateChildValues(updateObject)
-        
+        textField.text = String(location.coordinate.latitude)
         print("Upload updated location to server")
     }
     
