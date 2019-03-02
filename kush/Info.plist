@@ -21,9 +21,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
     <key>NSHealthShareUsageDescription</key>
-    <string>I would like to access your Mindful Sessions for demoing to readers</string>
+    <string>I would like to access your sleep and steps schedule to help diagnose your depression.</string>
     <key>NSHealthUpdateUsageDescription</key>
-    <string>I would like to update your Mindful Sessions for demoing to readers</string>
+    <string>I would like to access your sleep and steps schedule to help diagnose your depression.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Will you allow this app to always know your location?</string>
 	<key>NSLocationAlwaysUsageDescription</key>

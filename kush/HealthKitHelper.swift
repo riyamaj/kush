@@ -26,16 +26,12 @@ class HealthKitHelper {
         if HKHealthStore.isHealthDataAvailable()
         {
             // We have to request each data type explicitly
-            let steps = NSSet(object: HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!)
+            let to_read = NSSet(objects: HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!, HKQuantityType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!)
             // Now we can request authorization for step count data
-            storage.requestAuthorization(toShare: nil, read: steps as? Set<HKObjectType>) { (success, error) -> Void in
+            storage.requestAuthorization(toShare: nil, read: to_read as? Set<HKObjectType>) { (success, error) -> Void in
                 isEnabled = success
             }
-            
-            let sleep_amount = NSSet(object: HKQuantityType.categoryType(forIdentifier: HKCategoryTypeIdentifier.sleepAnalysis)!)
-            storage.requestAuthorization(toShare: nil, read: sleep_amount as? Set<HKObjectType>) { (success, error) -> Void in
-                isEnabled = success
-            }
+    
         }
         else
         {
@@ -56,10 +52,11 @@ class HealthKitHelper {
                 if let result = tmpResult {
                     for item in result {
                         if let sample = item as? HKCategorySample {
-                            if sample.value == HKCategoryValueSleepAnalysis.asleep.rawValue {
+                            //time in bed is assumed to be sleeping time...
+//                            if sample.value == HKCategoryValueSleepAnalysis.asleep.rawValue {
                                 let timeInterval = sample.endDate.timeIntervalSince(sample.startDate)
                                 totalSleepTime += timeInterval.binade
-                            }
+//                            }
                         }
                     }
                 }
