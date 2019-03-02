@@ -20,6 +20,10 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+    <key>NSHealthShareUsageDescription</key>
+    <string>I would like to access your Mindful Sessions for demoing to readers</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>I would like to update your Mindful Sessions for demoing to readers</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Will you allow this app to always know your location?</string>
 	<key>NSLocationAlwaysUsageDescription</key>

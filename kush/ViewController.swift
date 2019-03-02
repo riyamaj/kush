@@ -8,19 +8,16 @@
 
 import UIKit
 import Firebase
-import HealthKit
 import CoreLocation
 import Foundation
 import Alamofire
 
 class ViewController: UIViewController, CLLocationManagerDelegate {
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
-    let healthStore = HKHealthStore()
+    var hkh: HealthKitHelper!
     var locationManager:CLLocationManager!
     var ref: DatabaseReference!
     var uid: String!
-    var importantTypes = ""
-    private var startTime: Date? //An instance variable, will be used as a previous location time.
 
     
     @IBOutlet weak var statusLabel: UILabel!
@@ -33,16 +30,44 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         //Set DB ref and uid to appDelegate
         self.ref = appDelegate.ref
         self.uid = appDelegate.uid
+        self.hkh = HealthKitHelper()
         
         setupUser()
+        setupLocationManager()
         
-        //Setup location
+        startLocationTimer()
+        startHealthTimer()
+        
+    }
+    
+    func setupLocationManager() {
         locationManager = CLLocationManager()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.requestAlwaysAuthorization()
-        
-        startTimer()
+    }
+    
+    // Sets up user the first time they start up the app
+    func setupUser() {
+        //ref.child("users").child(uid).setValue(["username": "daniel"])
+        ref.child("users").child(uid).observeSingleEvent(of: .value, with: { (snapshot) in
+            if snapshot.exists(){
+                print("User already exists")
+            }
+            else{
+                //Setup user in users table
+                self.ref.child("users").child(self.uid).setValue(["username": self.uid])
+                
+                //Setup user in location table
+                self.ref.child("location_data").child("users").child(self.uid).setValue("")
+                
+                //Setup user in sleep_data
+                self.ref.child("sleep_data").child("users").child(self.uid).setValue("")
+                
+                //Setup user in step_data
+                self.ref.child("step_data").child("users").child(self.uid).setValue("")
+            }
+        })
     }
     
     
@@ -81,7 +106,48 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                 self.pushLocation(location: location, ret: ret_string, ret2: ret_string2)
             }
         }
+    }
+    
+    // Pushes the current location to firebase
+    func pushLocation(location: CLLocation, ret: String, ret2: String) {
+        let date = getTodaysDate()
+        let timestamp = String(getCurrentEpoch())
+        let locData = ["latitude": location.coordinate.latitude,
+                       "longitude": location.coordinate.longitude,
+                       "types": ret,
+                       "names": ret2,
+                       "altitude": location.altitude.binade,
+                       "speed": location.speed.binade] as [String : Any]
         
+        let updateObject = [timestamp: locData]
+        // Push to Database
+        ref.child("location_data/users").child(uid).child(date).updateChildValues(updateObject)
+        textField.text = String(location.coordinate.latitude)
+        print("Upload updated location to server")
+    }
+    
+    // Pushes sleep amount to firebase
+    func pushSleep(sleepAmount: Double) {
+        let date = getTodaysDate()
+        let timestamp = String(getCurrentEpoch())
+        let sleepData = ["sleepAmount": sleepAmount] as [String : Any]
+        
+        let updateObject = [timestamp: sleepData]
+        // Push to Database
+        ref.child("sleep_data/users").child(uid).child(date).updateChildValues(updateObject)
+        print("Upload sleep data to server")
+    }
+    
+    // Pushes steps walked to firebase
+    func pushSteps(stepAmount: Double) {
+        let date = getTodaysDate()
+        let timestamp = String(getCurrentEpoch())
+        let stepData = ["steps": stepAmount] as [String : Any]
+        
+        let updateObject = [timestamp: stepData]
+        // Push to Database
+        ref.child("step_data/users").child(uid).child(date).updateChildValues(updateObject)
+        print("Upload step data to server")
     }
     
     @IBAction func actionButtonPressed(_ sender: Any) {
@@ -96,33 +162,28 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         
     }
     
-    func startTimer() {
+    func startLocationTimer() {
         // Timer fires every 5 seconds, then sleeps for 10
-        Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { (t) in
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { (t) in
             self.locationManager.requestLocation()
             sleep(10)
         }
     }
     
-    
-    // Sets up user the first time they start up the app
-    func setupUser() {
-        //ref.child("users").child(uid).setValue(["username": "daniel"])
-        ref.child("users").child(uid).observeSingleEvent(of: .value, with: { (snapshot) in
-            if snapshot.exists(){
-                print("User already exists")
+    func startHealthTimer() {
+        // Timer fires every 60*60*24 seconds, then sleeps for 10
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { (t) in
+            self.hkh.recentSteps() { steps, error in
+                print("steps: " + String(steps))
+                self.pushSteps(stepAmount: steps)
             }
-            else{
-                //Setup user in users table
-                self.ref.child("users").child(self.uid).setValue(["username": self.uid])
-                
-                //Setup user in location table
-                self.ref.child("location_data").child("users").child(self.uid).setValue("")
-                
-                //Setup user in sleep_data
-                
+            
+            self.hkh.sleepAmount() { sleepAmount, error in
+                print("sleep: " + String(sleepAmount))
+                self.pushSleep(sleepAmount: sleepAmount)
             }
-        })
+            sleep(10)
+        }
     }
     
     // Returns todays date in yyyy-mm-dd
@@ -147,24 +208,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         formatter.timeStyle = .medium
         formatter.locale = Locale(identifier: "en_US")
         return formatter.string(from: date)
-    }
-    
-    // Pushes the current location to firebase
-    func pushLocation(location: CLLocation, ret: String, ret2: String) {
-        let date = getTodaysDate()
-        let timestamp = String(getCurrentEpoch())
-        let locData = ["latitude": location.coordinate.latitude,
-                       "longitude": location.coordinate.longitude,
-                       "types": ret,
-                       "names": ret2,
-                       "altitude": location.altitude.binade,
-                       "speed": location.speed.binade] as [String : Any]
-        
-        let updateObject = [timestamp: locData]
-        // Push to Database
-        ref.child("location_data/users").child(uid).child(date).updateChildValues(updateObject)
-        textField.text = String(location.coordinate.latitude)
-        print("Upload updated location to server")
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
