@@ -1,31 +1,26 @@
 //
-//  ViewController.swift
+//  DBAccessor.swift
 //  kush
 //
-//  Created by admin2 on 2/21/19.
+//  Created by Daniel on 3/15/19.
 //  Copyright © 2019 admin2. All rights reserved.
 //
 
-import UIKit
 import Firebase
 import CoreLocation
 import Foundation
 import Alamofire
 
-class ViewController: UIViewController, CLLocationManagerDelegate {
+class DBAccessor: NSObject, CLLocationManagerDelegate {
+    
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
     var hkh: HealthKitHelper!
     var locationManager:CLLocationManager!
     var ref: DatabaseReference!
     var uid: String!
-
     
-    @IBOutlet weak var statusLabel: UILabel!
-    @IBOutlet weak var actionButton: UIButton!
-    @IBOutlet weak var textField: UITextField!
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override init() {
+        super.init()
         
         //Set DB ref and uid to appDelegate
         self.ref = appDelegate.ref
@@ -122,7 +117,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         let updateObject = [timestamp: locData]
         // Push to Database
         ref.child("location_data/users").child(uid).child(date).updateChildValues(updateObject)
-        textField.text = String(location.coordinate.latitude)
+        //textField.text = String(location.coordinate.latitude)
         print("Upload updated location to server")
     }
     
@@ -148,18 +143,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         // Push to Database
         ref.child("step_data/users").child(uid).child(date).updateChildValues(updateObject)
         print("Upload step data to server")
-    }
-    
-    @IBAction func actionButtonPressed(_ sender: Any) {
-        let userText = textField.text!
-        ref.child("users").child(uid!).updateChildValues(["extra": userText])
-        
-        /**
-        Make calls to backend to figure out if we are depressed or not.
-         Get advice. update UI or text fields.
-        */
-        statusLabel.text = userText
-        
     }
     
     func startLocationTimer() {
@@ -223,4 +206,5 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         print("Error \(error)")
     }
 }
+
 

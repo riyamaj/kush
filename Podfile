@@ -10,6 +10,7 @@ target 'kush' do
   pod 'Firebase/Database'
   pod 'Alamofire', '~> 5.0.0-beta.2'
   pod 'SwiftyJSON'
+  pod 'Charts'
   
   target 'kushTests' do
     inherit! :search_paths
