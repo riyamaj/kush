@@ -11,6 +11,10 @@ target 'kush' do
   pod 'Alamofire', '~> 5.0.0-beta.2'
   pod 'SwiftyJSON'
   pod 'Charts'
+  pod 'SwiftyButton'
+  pod 'moa', '~> 10.0'
+  pod 'Auk', '~> 9.0'
+
   
   target 'kushTests' do
     inherit! :search_paths

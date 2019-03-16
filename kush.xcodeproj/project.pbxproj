@@ -17,6 +17,8 @@
 		6588F8E72220D1F5001EEC53 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6588F8E62220D1F5001EEC53 /* GoogleService-Info.plist */; };
 		65B0255E223CA13200B3819B /* imgs in Resources */ = {isa = PBXBuildFile; fileRef = 65B0255D223CA13200B3819B /* imgs */; };
 		65B02560223CA19100B3819B /* TabBarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B0255F223CA19100B3819B /* TabBarViewController.swift */; };
+		65B02564223DAB5200B3819B /* myButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65B02563223DAB5200B3819B /* myButton.swift */; };
+		65B02566223DB10000B3819B /* backgrounds in Resources */ = {isa = PBXBuildFile; fileRef = 65B02565223DB10000B3819B /* backgrounds */; };
 		BCD8ECAF221F238000FAA16F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD8ECAE221F238000FAA16F /* AppDelegate.swift */; };
 		BCD8ECB1221F238000FAA16F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCD8ECB0221F238000FAA16F /* ViewController.swift */; };
 		BCD8ECB4221F238000FAA16F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BCD8ECB2221F238000FAA16F /* Main.storyboard */; };
@@ -59,6 +61,8 @@
 		6588F8E62220D1F5001EEC53 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		65B0255D223CA13200B3819B /* imgs */ = {isa = PBXFileReference; lastKnownFileType = folder; path = imgs; sourceTree = "<group>"; };
 		65B0255F223CA19100B3819B /* TabBarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarViewController.swift; sourceTree = "<group>"; };
+		65B02563223DAB5200B3819B /* myButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = myButton.swift; sourceTree = "<group>"; };
+		65B02565223DB10000B3819B /* backgrounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = backgrounds; sourceTree = "<group>"; };
 		6F467D9DD787956D5C3DED0C /* Pods-kushUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-kushUITests.debug.xcconfig"; path = "Target Support Files/Pods-kushUITests/Pods-kushUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		74D1E51A7D3EB51351616D9E /* Pods_kushUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_kushUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BF7D3FE31BB437044031DA5 /* Pods_kush.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_kush.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -144,6 +148,8 @@
 		BCD8ECAD221F238000FAA16F /* kush */ = {
 			isa = PBXGroup;
 			children = (
+				65B02565223DB10000B3819B /* backgrounds */,
+				65B02563223DAB5200B3819B /* myButton.swift */,
 				65B0255D223CA13200B3819B /* imgs */,
 				657A1462222A2118003CA9A1 /* HealthKitHelper.swift */,
 				BCD8ECAE221F238000FAA16F /* AppDelegate.swift */,
@@ -311,6 +317,7 @@
 				6588F8E72220D1F5001EEC53 /* GoogleService-Info.plist in Resources */,
 				BCD8ECB6221F238300FAA16F /* Assets.xcassets in Resources */,
 				BCD8ECB4221F238000FAA16F /* Main.storyboard in Resources */,
+				65B02566223DB10000B3819B /* backgrounds in Resources */,
 				65B0255E223CA13200B3819B /* imgs in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -364,10 +371,13 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-kush/Pods-kush-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
+				"${BUILT_PRODUCTS_DIR}/Auk/Auk.framework",
 				"${BUILT_PRODUCTS_DIR}/Charts/Charts.framework",
 				"${BUILT_PRODUCTS_DIR}/GoogleUtilities/GoogleUtilities.framework",
+				"${BUILT_PRODUCTS_DIR}/SwiftyButton/SwiftyButton.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyJSON/SwiftyJSON.framework",
 				"${BUILT_PRODUCTS_DIR}/leveldb-library/leveldb.framework",
+				"${BUILT_PRODUCTS_DIR}/moa/moa.framework",
 				"${BUILT_PRODUCTS_DIR}/nanopb/nanopb.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -375,10 +385,13 @@
 			);
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Auk.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Charts.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleUtilities.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyButton.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyJSON.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/leveldb.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/moa.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/nanopb.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -442,6 +455,7 @@
 				652675B7223C53A8006FC0A4 /* tab2ViewController.swift in Sources */,
 				BCD8ECB1221F238000FAA16F /* ViewController.swift in Sources */,
 				65B02560223CA19100B3819B /* TabBarViewController.swift in Sources */,
+				65B02564223DAB5200B3819B /* myButton.swift in Sources */,
 				652675B9223C53B6006FC0A4 /* tab3ViewController.swift in Sources */,
 				657A1463222A2118003CA9A1 /* HealthKitHelper.swift in Sources */,
 				652675B5223C5396006FC0A4 /* tab1ViewController.swift in Sources */,

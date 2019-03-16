@@ -38,9 +38,9 @@ class TabBarViewController: UITabBarController {
         
         
         let myTabBarItem3 = (self.tabBar.items?[2])! as UITabBarItem
-        myTabBarItem3.image = UIImage(named: "imgs/footstep.png")?.withRenderingMode(UIImage.RenderingMode.alwaysOriginal)
-        myTabBarItem3.selectedImage = UIImage(named: "imgs/footstep.png")?.withRenderingMode(UIImage.RenderingMode.alwaysOriginal)
-        myTabBarItem3.title = "Steps"
+        myTabBarItem3.image = UIImage(named: "imgs/thumb.png")?.withRenderingMode(UIImage.RenderingMode.alwaysOriginal)
+        myTabBarItem3.selectedImage = UIImage(named: "imgs/thumb.png")?.withRenderingMode(UIImage.RenderingMode.alwaysOriginal)
+        myTabBarItem3.title = "Recommend"
         myTabBarItem3.imageInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         
 
