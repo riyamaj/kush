@@ -12,15 +12,6 @@ import Firebase
 import FirebaseDatabase
 import SwiftyJSON
 
-struct LocationStruct {
-    var altitude: Int
-    var latitude: String
-    var longitude: String
-    var names: String
-    var speed: Int
-    var types: String
-}
-
 class tab1ViewController: UIViewController {
     
     let appDelegate = UIApplication.shared.delegate as! AppDelegate
