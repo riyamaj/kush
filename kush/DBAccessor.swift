@@ -147,7 +147,7 @@ class DBAccessor: NSObject, CLLocationManagerDelegate {
     
     func startLocationTimer() {
         // Timer fires every 5 seconds, then sleeps for 10
-        Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { (t) in
+        Timer.scheduledTimer(withTimeInterval: 20, repeats: true) { (t) in
             self.locationManager.requestLocation()
             //sleep(10)
         }
